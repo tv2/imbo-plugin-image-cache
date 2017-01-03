@@ -1,0 +1,12 @@
+<?php 
+
+use Tv2\Imbo\Plugins\ImageCache,
+    Imbo\Storage\Filesystem;
+
+return [
+  'eventListeners' => [
+    'imageCache' => new ImageCache(new Filesystem([
+       'dataDir' => __DIR__ . '/../storage/image-cache',
+     ])),
+  ]
+];
