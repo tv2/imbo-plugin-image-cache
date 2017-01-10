@@ -33,6 +33,13 @@ class ImageCache implements ListenerInterface {
   private $storage;
 
   /**
+   * Whether or not this request hit a cached version
+   *
+   * @var boolean
+   */
+  private $cacheHit = false;
+
+  /**
    * Class constructor
    *
    * @param array $params Parameters for the driver
@@ -74,6 +81,10 @@ class ImageCache implements ListenerInterface {
         // anything
         $event->stopPropagation();
 
+        // Mark this request has a cache-hit, so we don't write the file to
+        // cache again
+        $this->cacheHit = true;
+
         // But then we need to manually call the image.loaded event that is
         // normally triggered upon success by the normal storage handler.
         $event->getManager()->trigger('image.loaded');
@@ -113,6 +124,13 @@ class ImageCache implements ListenerInterface {
    * @param EventInterface $event An event instance
    */
   public function storeInCache(EventInterface $event) {
+    if ($this->cacheHit) {
+      // This request was a cache-hit, so let's not store the image in the cache
+      // again, as this would mean we re-wrote the images in the cache on every
+      // request
+      return;
+    }
+
     $request = $event->getRequest();
     $response = $event->getResponse();
     $model = $response->getModel();
